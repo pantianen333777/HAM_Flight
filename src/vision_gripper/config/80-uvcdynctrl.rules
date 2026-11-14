@@ -1,0 +1,9 @@
+# Local override for Ubuntu's legacy uvcdynctrl rule.
+#
+# Intel RealSense D435i (8086:0b3a) does not use the legacy uvcdynctrl XML
+# controls. On this machine libwebcam loops while enumerating its V4L2
+# controls and grows /var/log/uvcdynctrl-udev.log by several GB per minute.
+#
+# This intentionally empty same-name override disables the obsolete packaged
+# rule. It does not affect librealsense. Very old UVC webcams that rely on
+# vendor extension XML files may lose those extra controls.

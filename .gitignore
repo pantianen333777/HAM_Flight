@@ -1,0 +1,36 @@
+# Catkin生成文件
+build/
+devel/
+install/
+logs/
+.catkin_tools/
+
+# 所有rosbag
+sh_utils/Bag/
+*.bag
+*.bag.active
+
+# 运行日志
+easy_flight_logs/
+fatal/
+*.log
+*.active
+
+# Python缓存
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Codex及本机配置
+.agents/
+.aws/
+.codex/
+
+# 项目中历史遗留的嵌套Git元数据备份（源码仍由主仓库管理）
+**/.git.embedded-backup/
+**/.git.embedded-backup
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store

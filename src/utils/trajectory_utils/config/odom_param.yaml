@@ -1,0 +1,59 @@
+pub_hz_: 200
+
+# Positive value advances the evaluated reference trajectory by this duration.
+time_delay: 0.03
+
+# Reference frame stamped into published PointStamped / PositionCommand headers.
+frame_id: world
+
+# Below this horizontal speed [m/s] the yaw reference holds its previous value
+# (climb / hold / descent); above it yaw follows the velocity heading.
+yaw_min_vxy: 0.1
+
+# Parameterized trajectory. Type 3 is the AprilTag mission route: hold at the
+# controller's takeoff altitude, fly straight along the trigger-time nose
+# heading, hold briefly, then return to the origin if no tag is acquired.
+# Mission type 0 performs a vertical climb followed by an indefinite position
+# hold. It never starts a horizontal path or automatic descent; land/cancel must
+# be commanded explicitly. Types 1/2 retain the legacy finite path missions.
+# The trajectory origin is frozen at the valid planning trigger position.
+traj_type: 3              # 0=vertical-hover, 1=circle, 2=figure-eight, 3=forward line
+traj_cycles: 1            # complete closed cycles in the maneuver segment
+traj_radius: 20.0         # legacy types 1/2 only: circle / figure-eight x amplitude [m]
+traj_amp_y:  14.0         # legacy type 2 only: figure-eight y amplitude [m]
+traj_height: 6.0          # legacy types 0/1/2 only; ignored by type 3
+traj_rise_time: 5.0       # base climb duration [s]
+traj_duration: 50.0       # maneuver duration [s]; phi_end remains 2*pi*traj_cycles
+traj_ramp_ratio: 0.35     # P1: each ramp is 35%; middle 30% is constant phase speed
+traj_hold_time: 5.0       # P3: hover after maneuver before descent [s]
+traj_descend_time: 5.0    # descent duration [s]
+
+# Type 3 only. The controller first takes off to 1.5 m; this route stays at
+# that altitude. If AprilTag is detected, apriltag_mission intercepts this
+# preset before its fallback return segment.
+line_start_hold_time: 3.0   # stable hover at origin before moving [s]
+line_forward_distance: 3.0  # nose-heading travel distance [m]
+line_forward_time: 27.0     # peak speed ~=0.243 m/s for the 3 m smooth profile
+line_end_hold_time: 2.0     # wait at 3 m endpoint if no tag was found [s]
+line_return_time: 27.0      # same conservative peak-speed limit on fallback
+
+# Spatial and temporal scaling are independent.
+path_scale: 1.0           # also scales type-3 line_forward_distance
+speed_scale: 1.0          # >1 faster, <1 slower; geometry remains unchanged
+lookahead_time: 0.5       # future-reference lookahead in wall-clock seconds
+
+# Startup velocity blend: fade the measured trigger velocity into the trajectory
+# over this window so the reference starts at the UAV's real speed (no step).
+# 0 disables — consider disabling if real-flight odom is noisy at rest.
+init_vel_blend_time: 1.0  # blend window [s]
+
+# Safety and timing checks.
+# NOTE: this guards against starting a from-rest trajectory while the UAV is
+# clearly moving. With init_vel_blend_time > 0 the startup speed is blended in
+# smoothly, so a moderate threshold is safe. Tune to ~1.5x your steady hover
+# speed; if hover is noisy, fix the controller (ctrl_node gains / PX4 MPC)
+# rather than raising this indefinitely.
+trigger_velocity_threshold: 0.50  # trigger accepted only below this speed [m/s]
+max_timer_dt: 0.20                # larger/negative timer jumps freeze trajectory clock [s]
+odom_timeout: 0.50                # stale odometry stops/rejects trajectory output [s]
+trigger_handshake_timeout: 30.0   # user trigger expires if controller-ready does not arrive in time [s]

@@ -1,0 +1,12 @@
+tag_family: tag36h11
+# Low-latency 640x480 profile for the onboard ARM computer. Full-resolution
+# tag pixels are retained because the 84 mm tag was intermittently lost during
+# the 1.5 m approach when 2x decimation was used.
+tag_threads: 4
+tag_decimate: 1.0
+tag_blur: 0.0
+tag_refine_edges: 1
+tag_debug: 0
+max_hamming_dist: 1
+publish_tf: false
+transport_hint: raw

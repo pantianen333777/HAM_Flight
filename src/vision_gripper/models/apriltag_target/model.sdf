@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="apriltag_target">
+    <static>true</static>
+    <link name="tag_plate">
+      <collision name="collision">
+        <geometry>
+          <box><size>0.08746 0.08746 0.005</size></box>
+        </geometry>
+      </collision>
+      <visual name="white_border">
+        <geometry>
+          <box><size>0.11000 0.11000 0.005</size></box>
+        </geometry>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+        </material>
+      </visual>
+      <visual name="black_tag">
+        <pose>0 0 0.003 0 0 0</pose>
+        <geometry>
+          <box><size>0.08746 0.08746 0.001</size></box>
+        </geometry>
+        <material>
+          <ambient>0.02 0.02 0.02 1</ambient>
+          <diffuse>0.02 0.02 0.02 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

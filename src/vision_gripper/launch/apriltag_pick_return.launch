@@ -1,0 +1,41 @@
+<launch>
+  <arg name="start_realsense" default="true"/>
+  <arg name="start_mavros" default="false"/>
+  <arg name="start_trajectory" default="true"/>
+  <arg name="start_odom_remap" default="true"/>
+  <arg name="start_controller" default="true"/>
+  <arg name="fcu_url" default="/dev/ttyACM0:57600"/>
+  <arg name="dry_run" default="true"/>
+  <arg name="mission_enabled_on_start" default="false"/>
+  <!-- This is a real-flight mission launch: fail closed on RTK/EKF loss. -->
+  <arg name="navigation_monitor_enabled" default="true"/>
+
+  <!-- Detection and gripper output only.  Its direct MAVROS velocity output and
+       standalone auto-close are deliberately disabled; the mission arbiter is
+       the only flight-command source. -->
+  <include file="$(find vision_gripper)/launch/apriltag_gripper.launch">
+    <arg name="start_realsense" value="$(arg start_realsense)"/>
+    <arg name="start_mavros" value="$(arg start_mavros)"/>
+    <arg name="fcu_url" value="$(arg fcu_url)"/>
+    <arg name="dry_run" value="$(arg dry_run)"/>
+    <arg name="flight_control_on_start" value="false"/>
+    <arg name="auto_close_on_start" value="false"/>
+  </include>
+
+  <include if="$(arg start_trajectory)" file="$(find trajectory_utils)/launch/traj_gen.launch">
+    <arg name="cmd_topic" value="/drone0/planning/preset_cmd"/>
+  </include>
+
+  <include if="$(arg start_odom_remap)" file="$(find realflight_utils)/launch/odom_remap.launch"/>
+
+  <include if="$(arg start_controller)" file="$(find ctrl_node)/launch/run_ctrl.launch">
+    <arg name="navigation_monitor_enabled" value="$(arg navigation_monitor_enabled)"/>
+  </include>
+
+  <node pkg="vision_gripper" type="apriltag_trajectory_mission_node.py"
+        name="apriltag_mission" output="screen" required="true">
+    <rosparam command="load" file="$(find vision_gripper)/config/apriltag_trajectory_mission.yaml"/>
+    <param name="enabled_on_start" value="$(arg mission_enabled_on_start)"/>
+    <param name="gripper_dry_run" value="$(arg dry_run)"/>
+  </node>
+</launch>

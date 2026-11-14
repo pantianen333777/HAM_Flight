@@ -1,0 +1,86 @@
+# AprilTag pick-and-return mission.  The node relays the preset trajectory until
+# the selected tag is seen, then becomes the sole PositionCommand source.
+enabled_on_start: false
+control_rate_hz: 50.0
+
+preset_command_topic: /drone0/planning/preset_cmd
+command_output_topic: /drone0/planning/cmd
+odom_topic: /odom/remap
+tag_position_topic: /apriltag_gripper/tag_position
+mavros_state_topic: /mavros/state
+mavros_extended_state_topic: /mavros/extended_state
+gripper_service: /apriltag_gripper/set_gripper
+takeoff_land_topic: /drone0/ctrl_node/takeoff_land
+
+# The tag stays on the ground.  The pickup centre is deliberately placed
+# 0.34 m above it and 0.03 m toward the aircraft nose, so the object does not
+# occlude the tag.  Camera-to-gripper geometry is measured on the real frame.
+target_distance_m: 0.45
+distance_tolerance_m: 0.03
+horizontal_tolerance_m: 0.03
+camera_to_gripper_forward_m: -0.058
+camera_to_gripper_right_m: 0.0
+camera_to_gripper_down_m: 0.110
+object_forward_from_tag_m: 0.030
+object_right_from_tag_m: 0.0
+object_height_above_tag_m: 0.340
+
+# Small residual mounting corrections are applied after the nominal D435
+# optical (right, image-down, optical-axis) -> ROS body FLU conversion.
+camera_mount_roll_correction_deg: 0.0
+camera_mount_pitch_correction_deg: 0.0
+camera_mount_yaw_correction_deg: 0.0
+detection_takeover_count: 3
+target_stable_detections: 5
+tag_timeout_s: 0.25
+tag_abort_timeout_s: 1.0
+reacquire_hold_s: 6.0
+reacquire_stable_detections: 5
+reacquire_initial_hold_s: 0.40
+reacquire_climb_m: 0.15
+reacquire_climb_speed_mps: 0.05
+lost_tag_climb_m: 0.30
+max_tag_jump_m: 0.20
+max_tag_measurement_age_s: 0.25
+tag_odom_sync_tolerance_s: 0.05
+odom_history_duration_s: 2.0
+
+# Tracking is performed in the odometry world frame after full roll/pitch/yaw
+# compensation.  Descent is inhibited until horizontal error is small.
+lateral_kp: 0.55
+vertical_kp: 0.40
+max_lateral_speed_mps: 0.12
+max_vertical_speed_mps: 0.07
+near_lateral_speed_mps: 0.05
+near_vertical_speed_mps: 0.03
+near_target_error_m: 0.15
+descent_full_alignment_m: 0.07
+descent_stop_alignment_m: 0.16
+max_tracking_accel_mps2: 0.10
+max_xy_reference_lead_m: 0.10
+max_z_reference_lead_m: 0.06
+control_deadband_m: 0.015
+close_max_horizontal_speed_mps: 0.10
+close_max_vertical_speed_mps: 0.08
+close_max_command_speed_mps: 0.04
+
+# After one successful close: restore the preset 1.0 m cruise altitude,
+# return to the recorded mission origin x/y, then hold for operator takeland.
+gripper_settle_s: 1.0
+lift_height_m: 0.50
+lift_speed_mps: 0.10
+lift_tolerance_m: 0.05
+lift_settle_s: 0.50
+return_speed_mps: 0.18
+return_accel_mps2: 0.10
+return_tolerance_m: 0.10
+return_settle_s: 2.0
+return_to_preset_altitude: true
+auto_land_on_return: false
+
+odom_timeout_s: 0.30
+preset_timeout_s: 0.15
+require_mavros_connected: true
+require_armed_offboard: true
+gripper_dry_run: true
+allow_dry_run_sequence: false

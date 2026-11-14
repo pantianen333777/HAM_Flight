@@ -1,0 +1,55 @@
+<launch>
+  <arg name="start_realsense" default="true"/>
+  <arg name="start_mavros" default="false"/>
+  <arg name="fcu_url" default="/dev/ttyACM0:57600"/>
+  <arg name="dry_run" default="true"/>
+  <arg name="flight_control_on_start" default="false"/>
+  <arg name="auto_close_on_start" default="false"/>
+  <!-- Explicit low-latency D435i profile. Depth remains available, but costly
+       color/depth synchronization and alignment are not needed for tag pose. -->
+  <arg name="color_width" default="640"/>
+  <arg name="color_height" default="480"/>
+  <arg name="color_fps" default="30"/>
+  <arg name="depth_width" default="640"/>
+  <arg name="depth_height" default="480"/>
+  <arg name="depth_fps" default="30"/>
+  <arg name="enable_depth" default="true"/>
+  <arg name="align_depth" default="false"/>
+
+  <include if="$(arg start_realsense)" file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="color_width" value="$(arg color_width)"/>
+    <arg name="color_height" value="$(arg color_height)"/>
+    <arg name="color_fps" value="$(arg color_fps)"/>
+    <arg name="depth_width" value="$(arg depth_width)"/>
+    <arg name="depth_height" value="$(arg depth_height)"/>
+    <arg name="depth_fps" value="$(arg depth_fps)"/>
+    <arg name="enable_depth" value="$(arg enable_depth)"/>
+    <arg name="align_depth" value="$(arg align_depth)"/>
+    <arg name="enable_sync" value="false"/>
+    <arg name="enable_gyro" value="false"/>
+    <arg name="enable_accel" value="false"/>
+  </include>
+
+  <include if="$(arg start_mavros)" file="$(find mavros)/launch/px4.launch">
+    <arg name="fcu_url" value="$(arg fcu_url)"/>
+  </include>
+
+  <node pkg="apriltag_ros" type="apriltag_ros_continuous_node"
+        name="apriltag_detector" output="screen">
+    <rosparam command="load" file="$(find vision_gripper)/config/apriltag_settings.yaml"/>
+    <rosparam command="load" file="$(find vision_gripper)/config/apriltag_tags.yaml"/>
+    <!-- Drawing and republishing a full 1280x720 image adds substantial ARM CPU
+         load. Enable this manually only while visually debugging. -->
+    <param name="publish_tag_detections_image" value="false"/>
+    <remap from="image_rect" to="/camera/color/image_raw"/>
+    <remap from="camera_info" to="/camera/color/camera_info"/>
+  </node>
+
+  <node pkg="vision_gripper" type="apriltag_gripper_node.py"
+        name="apriltag_gripper" output="screen" required="true">
+    <rosparam command="load" file="$(find vision_gripper)/config/apriltag_gripper.yaml"/>
+    <param name="dry_run" value="$(arg dry_run)"/>
+    <param name="flight_control_on_start" value="$(arg flight_control_on_start)"/>
+    <param name="auto_close_on_start" value="$(arg auto_close_on_start)"/>
+  </node>
+</launch>

@@ -1,0 +1,39 @@
+tag_id: 0
+tag_detection_topic: /tag_detections
+
+# Camera optical-axis distance at which the gripper is allowed to close.
+target_distance_m: 0.45
+distance_tolerance_m: 0.03
+horizontal_tolerance_m: 0.03
+stable_detections: 5
+detection_timeout_s: 0.25
+pose_filter_window: 3
+
+# Nominal optical-frame location of the tag at the configured pickup pose.
+# Camera is 58 mm ahead of the gripper; the object is 30 mm ahead of the tag.
+# Measured lateral camera/gripper offset is zero.
+gripper_offset_x_m: 0.0
+gripper_offset_y_m: 0.088
+
+# BODY_NED velocity controller: x forward, y right, z down.
+lateral_kp: 0.8
+vertical_kp: 0.8
+max_lateral_speed_mps: 0.15
+max_vertical_speed_mps: 0.10
+control_deadband_m: 0.01
+setpoint_topic: /mavros/setpoint_raw/local
+
+# Both actions require an explicit service call after startup.
+flight_control_on_start: false
+auto_close_on_start: false
+
+main_output: 1
+actuator_index: 1
+require_output_mapping: true
+require_mavros_connected: true
+mavros_command_service: /mavros/cmd/command
+mavros_param_get_service: /mavros/param/get
+open_value: 0.85
+close_value: -0.60
+command_cooldown_s: 1.0
+dry_run: true

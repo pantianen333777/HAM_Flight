@@ -1,0 +1,87 @@
+# D435i aligned color/depth topics.
+color_topic: /camera/color/image_raw
+depth_topic: /camera/aligned_depth_to_color/image_raw
+camera_info_topic: /camera/color/camera_info
+
+# Actual target: black tape roll. Hough circle detection is much more stable
+# than a dark-pixel contour because the roll is hollow and partly occluded.
+detector_mode: dark_circle
+circle_scale: 0.50
+circle_min_radius_ratio: 0.10
+circle_max_radius_ratio: 0.20
+circle_expected_radius_ratio: 0.153
+circle_hough_param1: 100
+circle_hough_param2: 35
+circle_dark_v_max: 90
+circle_min_dark_ratio: 0.40
+circle_search_u_min_ratio: 0.25
+circle_search_u_max_ratio: 0.96
+circle_search_v_min_ratio: 0.35
+circle_search_v_max_ratio: 1.05
+
+# Surface depth is sampled from the visible upper grey/black annulus, not from
+# the hole. The 30th percentile rejects the more distant floor behind it.
+ring_depth_inner_ratio: 0.55
+ring_depth_outer_ratio: 0.85
+ring_depth_upper_cut_ratio: -0.05
+ring_depth_percentile: 30
+circle_min_depth_samples: 100
+
+# HSV mode remains available for solid coloured targets by setting
+# detector_mode: hsv_color.
+hsv_lower_1: [0, 90, 60]
+hsv_upper_1: [12, 255, 255]
+hsv_lower_2: [168, 90, 60]
+hsv_upper_2: [179, 255, 255]
+min_contour_area_px: 1200
+morphology_kernel_px: 5
+depth_window_px: 9
+min_valid_depth_samples: 8
+# The aircraft's orange/red structure is visible at the bottom of the actual
+# camera image. Ignore that fixed strip so it cannot become a target.
+ignore_bottom_ratio: 0.0
+
+# The image location occupied by the object when it is inside the gripper.
+# Because the camera is in front of the gripper this MUST be calibrated on the
+# actual airframe. Ratios are relative to image width/height.
+# 50-frame real calibration with the gripper physically OPEN at +0.85,
+# 1280x720 image: centre=(853, 604) px and surface depth=0.233 m. The measured
+# 5th..95th percentile was 0.232..0.233 m with about 5 px image jitter.
+grasp_u_ratio: 0.6664
+grasp_v_ratio: 0.8389
+grasp_zone_width_ratio: 0.08
+grasp_zone_height_ratio: 0.08
+grab_depth_min_m: 0.22
+grab_depth_max_m: 0.25
+# Reject occasional D435i depth spikes on the tape annulus. Must be odd.
+depth_temporal_window: 7
+# Reference point of a correctly positioned target in camera_color_optical_frame.
+grasp_reference_x_m: 0.0533
+grasp_reference_y_m: 0.0556
+grasp_reference_z_m: 0.2330
+# One full 7-frame depth-filter window plus one confirmed frame. The Hough
+# detector can miss isolated frames on the partly occluded tape roll.
+stable_frames: 8
+
+# Current aircraft wiring, verified 2026-11-09:
+# MAIN1 -> Offboard Actuator Set 1 (PWM_MAIN_FUNC1=301).
+main_output: 1
+actuator_index: 1
+require_output_mapping: true
+require_mavros_connected: true
+mavros_command_service: /mavros/cmd/command
+mavros_param_get_service: /mavros/param/get
+
+# Partial range is deliberately conservative with the currently observed
+# MAIN1 PWM limits (840..2200 us). Physical direction was verified on the
+# installed servo with propellers removed: positive opens, negative closes.
+# +0.85 gives the tape roll more entry clearance without using full travel.
+open_value: 0.85
+close_value: -0.60
+command_cooldown_s: 1.0
+
+# Safe defaults: detection runs, but no PWM command is sent until dry_run is
+# explicitly disabled; automatic closing must also be enabled via service.
+dry_run: true
+auto_grab_on_start: false
+publish_debug_image: true

@@ -1,0 +1,17 @@
+drone_model: iris_0
+tag_model: apriltag_target
+tag_id: 0
+tag_size_m: 0.08746
+
+# Same rigid camera-to-gripper geometry as the real aircraft (FRD).
+camera_to_gripper_forward_m: -0.058
+camera_to_gripper_right_m: 0.0
+camera_to_gripper_down_m: 0.110
+
+# Approximate D435i colour-camera field of view.  This gates truth detections;
+# the simulator does not claim to model lighting, blur or decoder failures.
+horizontal_fov_deg: 69.0
+vertical_fov_deg: 42.0
+min_depth_m: 0.10
+max_depth_m: 3.0
+publish_rate_hz: 30.0

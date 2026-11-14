@@ -1,0 +1,6 @@
+# Printed tag calibrated 2026-11-10 from 120 synchronized AprilTag-pose and
+# D435i aligned-depth samples.  Median aligned depth was 0.916 m and the old
+# 0.04413 m setting reported z=0.462344 m.  Reprint/resize requires recalibration.
+standalone_tags:
+  - {id: 0, size: 0.08746, name: tag_0}
+tag_bundles: []

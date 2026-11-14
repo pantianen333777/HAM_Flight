@@ -1,0 +1,58 @@
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="tag_x" default="1.5"/>
+  <arg name="tag_y" default="0.0"/>
+
+  <!-- Standard PX4 Iris physics, PX4 SITL and the only MAVROS instance. -->
+  <include file="$(find uav_utils)/launch/base_sim_single_vehicle_ground_truth.launch">
+    <arg name="vehicle" value="iris"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="interactive" value="false"/>
+  </include>
+
+  <node pkg="gazebo_ros" type="spawn_model" name="spawn_apriltag_target"
+        args="-sdf -file $(find vision_gripper)/models/apriltag_target/model.sdf -model apriltag_target -x $(arg tag_x) -y $(arg tag_y) -z 0.0025"
+        output="screen"/>
+
+  <include file="$(find trajectory_utils)/launch/traj_gen.launch">
+    <arg name="cmd_topic" value="/drone0/planning/preset_cmd"/>
+  </include>
+
+  <include file="$(find realflight_utils)/launch/odom_remap_sim.launch">
+    <arg name="model_name" value="iris_0"/>
+  </include>
+
+  <include file="$(find ctrl_node)/launch/run_ctrl.launch">
+    <arg name="navigation_monitor_enabled" value="false"/>
+    <!-- Standard Iris: total mass 1.535 kg, motor constant 5.84e-6.
+         Hover rotor command is sqrt(m*g/(4*k))/1000 ~= 0.803. -->
+    <arg name="hover_percentage" value="0.81"/>
+  </include>
+
+  <!-- Ideal Gazebo geometry -> AprilTagDetectionArray. -->
+  <node pkg="vision_gripper" type="gazebo_apriltag_truth_node.py"
+        name="gazebo_apriltag_truth" output="screen" required="true">
+    <rosparam command="load" file="$(find vision_gripper)/config/apriltag_gazebo_sim.yaml"/>
+  </node>
+
+  <!-- Reuse the real detection filter and gripper service, but never command a
+       simulated/real actuator.  The mission is explicitly allowed to continue
+       after the acknowledged dry-run close. -->
+  <node pkg="vision_gripper" type="apriltag_gripper_node.py"
+        name="apriltag_gripper" output="screen" required="true">
+    <rosparam command="load" file="$(find vision_gripper)/config/apriltag_gripper.yaml"/>
+    <param name="tag_detection_topic" value="/sim/tag_detections"/>
+    <param name="dry_run" value="true"/>
+    <param name="require_output_mapping" value="false"/>
+    <param name="flight_control_on_start" value="false"/>
+    <param name="auto_close_on_start" value="false"/>
+  </node>
+
+  <node pkg="vision_gripper" type="apriltag_trajectory_mission_node.py"
+        name="apriltag_mission" output="screen" required="true">
+    <rosparam command="load" file="$(find vision_gripper)/config/apriltag_trajectory_mission.yaml"/>
+    <param name="enabled_on_start" value="true"/>
+    <param name="gripper_dry_run" value="true"/>
+    <param name="allow_dry_run_sequence" value="true"/>
+  </node>
+</launch>
